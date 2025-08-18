@@ -32,18 +32,19 @@ app/
 ```
 
 ## Setup
+1. Persiapkan terkait `vector_database` dengan running code `vector_store_and_embedding.py` dengan dokumen-dokumen knowledge base diambil sebagian dari kebijakan pada saat covid (spesifik di jakarta) : https://ppid.jakarta.go.id/regulasi-covid19 dan juga persiapkan table id_jk dengan memanfaatkan data dari google bigquery open data covid : https://health.google.com/covid-19/open-data/raw-data?loc=ID_JK
 
-1. **Masuk ke folder app:**
+2. **Masuk ke folder app:**
 ```bash
 cd C:\Users\acer\Documents\Rubythalib\rubythalib\technical_test\app
 ```
 
-2. **Install dependencies:**
+3. **Install dependencies:**
 ```bash
 pip install -r requirements.txt
 ```
 
-3. **Setup environment variables (.env sudah ada):**
+4. **Setup environment variables (.env sudah ada):**
 ```
 OLLAMA_API_BASE=http://localhost:11434
 OLLAMA_BASE_URL=http://localhost:11434
@@ -56,11 +57,11 @@ DB_PORT=5432
 DB_NAME=postgres
 ```
 
-4. **Pastikan Ollama running dengan model:**
+5. **Pastikan Ollama running dengan model:**
 - llama3.1:8b
 - nomic-embed-text
 
-5. **Pastikan vector database tersedia di:**
+6. **Pastikan vector database tersedia di:**
 `C:\Users\acer\Documents\Rubythalib\rubythalib\technical_test\docs_kebijakan_covid_jkt`
 
 ## Running
@@ -69,12 +70,6 @@ DB_NAME=postgres
 ```bash
 cd C:\Users\acer\Documents\Rubythalib\rubythalib\technical_test\app
 uvicorn main:app --reload --host 0.0.0.0 --port 8000
-```
-
-**Opsi 2: Menggunakan run script**
-```bash
-cd C:\Users\acer\Documents\Rubythalib\rubythalib\technical_test\app
-python run.py
 ```
 
 ## API Endpoints
