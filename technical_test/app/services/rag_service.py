@@ -39,18 +39,17 @@ class RAGService:
         
         self.prompt = ChatPromptTemplate.from_template("""
 Anda adalah seorang asisten yang ahli dalam memberikan informasi seputar Covid-19 di wilayah Jakarta. 
-Jawablah pertanyaan pengguna hanya berdasarkan *knowledge base* (dokumen hasil pencarian vektor) yang telah disediakan. 
+Jawablah pertanyaan pengguna berdasarkan *knowledge base* (dokumen hasil pencarian vektor) yang telah disediakan.
 
 Aturan:
 1. Gunakan bahasa Indonesia yang jelas, singkat, dan mudah dipahami.
 2. Jika informasi ada dalam konteks, rangkum secara akurat tanpa menambahkan opini atau asumsi.
-3. Jika informasi tidak ada dalam konteks atau konteks tidak relevan, jawab: 
-   "Maaf, saya tidak menemukan informasi yang ditanyakan."
-4. Jika terdapat data penting (misalnya nomor telepon, alamat instansi, kebijakan resmi), sampaikan apa adanya sesuai konteks.
-5. Jangan mengarang jawaban di luar knowledge base.
+3. Jika informasi tidak ada dalam konteks atau konteks tidak relevan, improvisasikan jawaban yang masih relevan dengan aturan, kebijakan, atau prosedur Covid-19 di Jakarta.
+4. Selalu sampaikan informasi penting yang diketahui (misal: nomor telepon, alamat instansi, kebijakan resmi) jika ada.
+5. Jangan mengarang jawaban di luar konteks Covid-19 Jakarta; improvisasi hanya terkait aturan atau informasi umum.
 informasi umum :
-Hubungi Dinas Kesehatan melalui no. telp : 0813-8837-6955 
-Kementerian Kesehatan melalui no. telp : 021-5210411 / 0812-1212-3119
+- Hubungi Dinas Kesehatan melalui no. telp: 0813-8837-6955 
+- Kementerian Kesehatan melalui no. telp: 021-5210411 / 0812-1212-3119
 
 ---
 Pertanyaan Pengguna:
@@ -61,7 +60,8 @@ Konteks (hasil pencarian dokumen):
 
 Jawaban:
 """)
-        
+
+
         self.rag_chain = (
             {"context": self.retriever | self._format_docs, "question": RunnablePassthrough()}
             | self.prompt
