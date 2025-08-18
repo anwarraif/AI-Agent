@@ -64,3 +64,8 @@ SUM(new_deceased) AS total_kematian_baru,
 AVG(rainfall_mm) AS rata_rata_curah_hujan
 FROM id_jk 
 WHERE TO_DATE(date, 'MM/DD/YYYY') BETWEEN TO_DATE('08/01/2021', 'MM/DD/YYYY') AND TO_DATE('08/31/2021', 'MM/DD/YYYY');
+
+
+SELECT SUM(new_confirmed) 
+FROM id_jk 
+WHERE TO_DATE(date, 'MM/DD/YYYY') BETWEEN TO_DATE('03/01/2021', 'MM/DD/YYYY') AND TO_DATE('03/31/2021', 'MM/DD/YYYY');
