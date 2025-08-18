@@ -8,6 +8,7 @@ AI Assistant yang mengintegrasikan RAG (Retrieval-Augmented Generation) dan SQL 
 - **RAG Service**: Untuk pertanyaan tentang kebijakan, prosedur, kontak, dan informasi umum COVID-19
 - **SQL Agent**: Untuk pertanyaan tentang data statistik, tren, dan analisis numerik COVID-19
 - **FastAPI Backend**: RESTful API yang mudah digunakan
+- **Fokus pada App folder untuk menjalankan projek**
 
 ## Struktur Project
 
