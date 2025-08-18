@@ -135,7 +135,7 @@ curl -X POST "http://localhost:8000/api/v1/query" \
 ## Limitations
 1. Dataset Covid yang digunakan hanya pada jakarta region
 2. latensinya cukup tinggi jika dijalankan pada local laptop dengan menggunakan llama3.1:8b
-3. Dokumen-dokumen yang digunakan masih diekstrak dari tipe text saja, untuk scan PDF belum dilakukan untuk proses ekstraksi menggunakan OCR>
+3. Dokumen-dokumen yang digunakan masih diekstrak dari tipe text saja, untuk scan PDF belum dilakukan untuk proses ekstraksi menggunakan OCR
 
 ## For more discussion
 1. Contact : kurniaanwarraif@gmail.com
