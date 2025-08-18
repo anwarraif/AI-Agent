@@ -139,4 +139,4 @@ curl -X POST "http://localhost:8000/api/v1/query" \
 
 ## For more discussion
 1. Contact : kurniaanwarraif@gmail.com
-2. linkeind : https://www.linkedin.com/in/anwaraif/
+2. linkedin : https://www.linkedin.com/in/anwaraif/
