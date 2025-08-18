@@ -1,0 +1,17 @@
+langchain 
+ollama
+psycopg2
+google-search-results
+sqlalchemy
+faiss-cpu
+langchain-huggingface
+langchain-community
+langchain-ollama
+python-dotenv
+fastapi
+pandas
+PyMuPDF==1.24.12
+PyPDF2==3.0.1
+langgraph==0.2.43
+pymysql
+uvicorn

@@ -1,0 +1,231 @@
+import os
+import sqlite3
+import pandas as pd
+from langchain.agents import AgentType, Tool, initialize_agent
+from langchain_core.callbacks.stdout import StdOutCallbackHandler
+from langchain_core.messages import AnyMessage, HumanMessage, SystemMessage, ToolMessage
+from langchain.agents import ZeroShotAgent
+from langchain_openai import AzureChatOpenAI
+from langchain_community.agent_toolkits.sql.toolkit import SQLDatabaseToolkit
+from langgraph.prebuilt import create_react_agent
+from langchain_community.utilities.sql_database import SQLDatabase
+from sqlalchemy import create_engine
+from sqlalchemy.pool import StaticPool
+from langchain.agents import create_sql_agent
+from langchain.agents import create_structured_chat_agent
+from typing import List
+from langchain.agents import Tool, AgentExecutor, create_openai_tools_agent
+from langchain.tools.base import StructuredTool
+from langchain.agents import AgentExecutor, create_openai_tools_agent
+from langchain_core.messages import BaseMessage, HumanMessage
+from langchain_core.output_parsers.openai_functions import JsonOutputFunctionsParser
+from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
+import functools
+import operator
+from typing import Sequence, TypedDict, Annotated
+from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
+from langgraph.graph import END, StateGraph, START
+from typing import Union, Literal
+from pydantic import BaseModel
+
+os.environ["AZURE_OPENAI_ENDPOINT"] = "………."
+os.environ["OPENAI_API_KEY"] = "……….."
+os.environ["OPENAI_API_VERSION"] = ''…………"
+os.environ["OPENAI_API_TYPE"] = "…………"
+
+llm = AzureChatOpenAI(deployment_name= 'gpt-4–32k', temperature=0.0, max_tokens=1000)
+
+# RAG system:
+
+# I am not creating any RAG system for you, however I am using the existing RAG system that I built for my purpose here:
+
+#     RAG system that Now, I will use: get_answer_search
+
+# Text to SQL:
+
+# Though i haven’t created RAG system for you, however i will show you how to create Text to SQL using Langgraph agent
+
+# Here is the remote file path is where my consumption data in the form of csv resides.
+
+remote_file_path='https://blob.core.windows.net/.......csv'
+df = pd.read_csv(remote_file_path + DATASOURCE_SAS_TOKEN)
+conn = sqlite3.connect('consumption.db',check_same_thread=False)
+df.to_sql('consumption', conn, index=False, if_exists='replace')
+
+db=SQLDatabase.from_uri("sqlite:///consumption.db")
+toolkit = SQLDatabaseToolkit(db=db, llm=llm)
+
+sql_agent_executor = Create_react_agent(llm,tools=toolkit.get_tools(),state_modifi
+er=MSSQL_AGENT_SUFFIX_WITH_MEMORY)
+
+SSQL_AGENT_SUFFIX_WITH_MEMORY= """While generating SQL for the above query, pay attention to the below:
+
+  
+   
+- General Instructions:
+  
+  - Do not use any LIMIT statements in SQL.
+  - Round answers to two decimal places.
+  - Avoid complicated SQL queries such as those involving division within a query.
+  - Perform operations step by step.
+  - Pay attention to all conditions mentioned in the query. Do not infer conditions.
+  - For questions on share or market share, use column="Amount" unless stated otherwise explicitly.
+  - YTD or ytd = Year to Date
+   - Don't assume year as current year unless indicated so. Take data for all years unless its indicated to use a specific year”””
+
+query="What are top three diaper brands in the market? "
+
+events = sql_agent_executor.stream(
+     {"messages": [HumanMessage(content=query)]},
+     stream_mode="values",
+)
+
+for event in events:
+   event["messages"][-1].pretty_print()
+   message_content= event["messages"][-1].content
+   if "Answer:" in message_content:
+      final_answer=message_content.split("Answer:",1)[1].strip()
+
+def get_answer_search_wrapper(input_data: dict) -> str:
+    # Log the input data for debugging purposes
+    print(f"Input Data: {input_data}")
+    # Extract tags and arguments from input_data
+    tags = input_data.get("tags", [])  # List of tags, defaults to empty list if not provided
+    args = input_data.get("Args", [])  # List of arguments, defaults to empty list if not provided
+    # Construct the query by joining the tags and arguments into a single string
+    query = " ".join(tags) if tags else ""  # Join tags into a string if they exist
+    query += " " + " ".join(args) if args else ""  # Append arguments to the query if they exist
+    # Log the constructed query
+    print(f"Query Extracted: {query}")
+    # Check if the query is empty or invalid
+    if not query.strip():  # If the query is just spaces or empty, return an error
+        print("Empty Query")
+        return "Error: No query provided"
+      # Call the RAG system to get the answer based on the constructed query
+    return get_answer_search(query.strip())  # Use the trimmed query to search the RAG system
+
+rag_tool = Tool(
+    name="RAG_Retriever",
+    func=get_answer_search_wrapper,
+    description=""
+               )
+tools = [rag_tool]
+
+def agent_node(state, agent, name):
+    result = agent.invoke(state)
+    return {"messages": [HumanMessage(content=result["messages"][-1].content, name=name)]}
+
+prompt_message="""You are a supervisor tasked with managing a conversation between the following workers: {members}. Given the following user request, respond with the worker to act next. Each worker will perform a task and respond with their results and status. If the conversation is over, respond with 'FINISH'.
+    - **Investment_analyst**: Use this worker for tasks that involve:
+        - Analyzing financial reports and equity research reports.
+        - Comparing revenue growth, profit margins, or similar financial metrics for any particular company or industry.
+        - Addressing questions related to Company Performance & Strategic Direction.
+        - Analyzing Industry & Competitive Landscape.
+        - Analyzing Analyst Ratings & Investment Thesis and Analyst Recommendations.
+        - Analyzing Analyst Views in Transcripts.
+        - General analytical tasks that require insights from unstructured data, trends, or strategic analysis.
+    - **Sql_agent**: Use this worker for tasks that involve:
+        - Calculating market share.
+        - Answering questions that compare sales or volume (excluding revenue growth or profit margin comparisons).
+        - Comparing sales and volume performance for any particular brand, category, sub-category, market, sector, or MANUFACTURER.
+        - Handling queries that require specific data analysis, calculations, or retrieval from structured SQL databases, particularly when it involves sales or volume metrics.
+Decision Criteria:
+- If the query mentions comparing financial metrics like "revenue growth" or "profit margins," route it to the **Investment_analyst**.
+- If the query involves structured data points related to sales, volume, or market share and requires a calculation or database lookup, direct it to the **Sql_agent**.
+- In cases where both agents could be relevant, prioritize the **Investment_analyst** for financial metrics and the **Sql_agent** for sales, volume, or market share calculations.
+Example Decision Flow:
+- Query: "Compare the revenue growth of Procter & Gamble (PG) and Coalgate-Pamolive for the past 2 years." -> **Investment_analyst**
+- Query: "What are the top 3 brads in consumer segments?" -> **Sql_agent**
+- Query: "Analyze the latest financial trends for ." -> **Investment_analyst**
+"""
+
+members = ["Investment_analyst", "Sql_agent"]
+system_prompt = prompt_message
+# Our team supervisor is an LLM node. It just picks the next agent to process
+# and decides when the work is completed
+options = ["FINISH"] + members
+
+RouteResponseNextType = Union[Literal["FINISH"], 
+                              Literal["Investment_analyst"], Literal["Sql_agent"]]
+class RouteResponse(BaseModel):
+    next: RouteResponseNextType
+
+prompt = ChatPromptTemplate.from_messages(
+    [
+        ("system", system_prompt),
+        MessagesPlaceholder(variable_name="messages"),
+        (
+            "system",
+            "Given the conversation above, who should act next?"
+            " Or should we FINISH? Select one of: {options}",
+        ),
+    ]
+).partial(options=str(options), members=", ".join(members))
+
+llm = llm
+def supervisor_agent(state):
+    supervisor_chain = (
+        prompt
+        | llm.with_structured_output(RouteResponse)
+    )
+    return supervisor_chain.invoke(state)
+class AgentState(TypedDict):
+    # The annotation tells the graph that new messages will always
+    # be added to the current states
+    messages: Annotated[Sequence[BaseMessage], operator.add]
+    # The 'next' field indicates where to route to next
+    next: str
+
+rag_agent = create_react_agent(llm, tools=tools, state_modifier="You should provide RAG search.")
+rag_node = functools.partial(agent_node, agent=rag_agent, name="Investment_analyst")
+sql_agent = create_react_agent(llm, tools=toolkit.get_tools(), state_modifier=MSSQL_AGENT_SUFFIX_WITH_MEMORY)
+sql_node = functools.partial(agent_node, agent=sql_agent, name="Sql_agent")
+
+workflow = StateGraph(AgentState)
+workflow.add_node("Investment_analyst", rag_node)
+workflow.add_node("Sql_agent", sql_node)
+workflow.add_node("supervisor", supervisor_agent)
+
+
+for member in members:
+    # We want our workers to ALWAYS "report back" to the supervisor when done
+    workflow.add_edge(member, "supervisor")
+# The supervisor populates the "next" field in the graph state
+# which routes to a node or finishes
+conditional_map = {k: k for k in members}
+conditional_map["FINISH"] = END
+workflow.add_conditional_edges("supervisor", lambda x: x["next"], conditional_map)
+# Finally, add entrypoint
+workflow.add_edge(START, "supervisor")
+
+graph = workflow.compile()
+
+query = "What are analysts view on P&G?"
+
+input_data = {"query": query}
+
+for s in graph.stream(
+    {
+        "messages": [
+            HumanMessage(content=input_data['query'])
+        ]
+    }
+):
+    if "__end__" not in s:
+        print(s)
+        print("----")
+
+query = "What are top 2 brands in consumer segment?"
+
+input_data = {"query": query}
+
+for s in graph.stream(
+    {
+        "messages": [
+            HumanMessage(content=input_data['query'])
+        ]
+    }
+):
+    if "__end__" not in s:
+        print(s)
+        print("----")

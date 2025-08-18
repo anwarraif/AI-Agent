@@ -1,0 +1,12 @@
+# RAG
+“Nomor telepon dinas kesehatan Jakarta untuk laporan Covid?”
+
+“aturan PPKM di Jakarta tahun 2021?”
+
+“Bagaimana prosedur isolasi mandiri yang berlaku di Jakarta?”
+
+“Apakah rumah sakit di Jakarta menyediakan hotline Covid?”
+
+“Dimana saya bisa mencari informasi vaksinasi Covid di Jakarta?”
+
+# SQL :
