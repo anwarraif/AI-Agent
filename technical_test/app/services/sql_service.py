@@ -40,20 +40,29 @@ Berikut adalah schema tabel `id_jk`:
 {self.table_info}
 
 Instruksi Keras:
+Instruksi Keras:
 1. Jawablah hanya dengan query SQL **lengkap dan valid** untuk PostgreSQL.
 2. Gunakan tabel `id_jk` saja, jangan gunakan tabel lain.
-3. Semua literal tanggal harus ditulis dengan fungsi TO_DATE, contoh:
-   `WHERE TO_DATE(date, 'MM/DD/YYYY') BETWEEN TO_DATE('07/01/2021','MM/DD/YYYY') AND TO_DATE('07/31/2021','MM/DD/YYYY')`
-4. Jika user bertanya kasus baru → pakai kolom new_confirmed.
-5. Jika user bertanya kematian baru → pakai kolom new_deceased.
-6. Jika user bertanya total kumulatif → pakai kolom cumulative_confirmed atau cumulative_deceased.
-7. Jika user bertanya populasi → pakai kolom population (atau sub kolom gender/usia).
-8. Jika user bertanya tentang iklim → pakai kolom average_temperature_celsius, rainfall_mm, relative_humidity, dll.
-9. Selalu tutup query dengan benar (tidak boleh terpotong).
-10. Jangan gunakan DML (INSERT, UPDATE, DELETE, DROP).
-11. Hasilkan jawaban dalam 2 bagian:
-    - **SQL Query:** tampilkan query
-    - **Penjelasan:** ringkas hasil query dalam bahasa natural
+3. Kolom yang tersedia antara lain: date, cumulative_confirmed, cumulative_deceased, new_confirmed, new_deceased.
+4. Jika user bertanya tentang jumlah kasus pada suatu periode (harian, bulanan, rentang tanggal):
+   - Gunakan kolom **new_confirmed** untuk kasus baru, atau **new_deceased** untuk kematian baru.
+   - Selalu gunakan fungsi `TO_DATE(date, 'MM/DD/YYYY')` untuk kolom `date`.
+   - **Semua literal tanggal HARUS ditulis dalam format `TO_DATE('MM/DD/YYYY', 'MM/DD/YYYY')`.**
+   - Contoh benar: 
+     `WHERE TO_DATE(date, 'MM/DD/YYYY') BETWEEN TO_DATE('07/01/2021','MM/DD/YYYY') AND TO_DATE('07/31/2021','MM/DD/YYYY')`
+5. Jika user bertanya tentang total kumulatif terakhir pada suatu tanggal:
+   - Gunakan kolom **cumulative_confirmed** atau **cumulative_deceased** sesuai konteks.
+   - Gunakan `ORDER BY TO_DATE(date, 'MM/DD/YYYY') DESC LIMIT 1` untuk mengambil nilai terbaru.
+6. Jika user bertanya kasus baru → pakai kolom new_confirmed.
+7. Jika user bertanya kematian baru → pakai kolom new_deceased.
+8. Jika user bertanya total → pakai kolom cumulative_confirmed atau cumulative_deceased.
+9. Jika user bertanya populasi → pakai kolom population (atau sub kolom gender/usia).
+10. Jika user bertanya tentang iklim → pakai kolom average_temperature_celsius, rainfall_mm, relative_humidity, dll
+11. Selalu tutup query dengan benar (tidak boleh terpotong).
+12. Jangan gunakan DML (INSERT, UPDATE, DELETE, DROP).
+13. Hasilkan jawaban dalam 2 bagian:
+   - **SQL Query:** tampilkan query
+   - **Penjelasan:** ringkas hasil query dalam bahasa natural
 
 Definisi kolom penting:
 - date: string format 'MM/DD/YYYY', harus dikonversi dengan TO_DATE(date, 'MM/DD/YYYY').
